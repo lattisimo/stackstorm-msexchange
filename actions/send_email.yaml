@@ -23,3 +23,8 @@ parameters:
         default: true
         description: Store the email in the Sent folder once sent
         required: true
+    body_type:
+        type: string
+        description: type of text for email body (html, text)
+        required: false
+        default: text
