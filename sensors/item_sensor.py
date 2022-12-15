@@ -99,6 +99,7 @@ class ItemSensor(PollingSensor):
         if self.account.is_authenticated:
             start_date = datetime.utcnow().replace(tzinfo=pytz.utc) - timedelta(LOOKBACK)
             # start_date = self._timezone.localize(EWSDateTime.from_datetime(stored_date))
+            self._logger.info("Selecting Folder {0}".format(self.sensor_folder))
             _folder = self.account.mailbox().get_folder(folder_name=self.sensor_folder)
             # _folder = self.account.root.get_folder_by_name(self.sensor_folder)
             _query = _folder.q()
