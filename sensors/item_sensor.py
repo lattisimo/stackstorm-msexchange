@@ -7,9 +7,9 @@ from exchangelib import (DELEGATE, Account, Configuration, EWSDateTime,
 from O365 import Account, FileSystemTokenBackend, Message, MSGraphProtocol
 from st2reactor.sensor.base import PollingSensor
 
+TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 LOOKBACK = 100  # number of seconds to look for past emails
 TN = 'O365OAuthToken'  # name of the token file
-TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 
 class ItemSensor(PollingSensor):
@@ -147,21 +147,21 @@ class ItemSensor(PollingSensor):
         self._last_date = self._sensor_service.get_value(name=self._store_key)
         if self._last_date is None:
             return None
-        return datetime.strptime(self._last_date, '%Y-%m-%dT%H:%M:%S')
+        return datetime.strptime(self._last_date, TIME_FORMAT)
 
     def _set_last_date(self, last_date):
         # Check if the last_date value is an EWSDateTime object
         if isinstance(last_date, EWSDateTime):
-            self._last_date = last_date.strftime('%Y-%m-%dT%H:%M:%S')
+            self._last_date = last_date.strftime(TIME_FORMAT)
         else:
-            self._last_date = time.strftime('%Y-%m-%dT%H:%M:%S', last_date)
+            self._last_date = time.strftime(TIME_FORMAT, last_date)
         self._sensor_service.set_value(name=self._store_key,
                                        value=self._last_date)
 
     def _dispatch_trigger_for_new_item(self, newitem: Message):
         # trigger = 'msexchange.exchange_new_item'
         # if isinstance(newitem.datetime_received, EWSDateTime):
-        #     datetime_received = newitem.datetime_received.strftime('%Y-%m-%dT%H:%M:%S')
+        #     datetime_received = newitem.datetime_received.strftime(TIME_FORMAT)
         # else:
         #     datetime_received = str(newitem.datetime_received)
 
