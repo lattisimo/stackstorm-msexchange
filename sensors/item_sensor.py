@@ -100,7 +100,7 @@ class ItemSensor(PollingSensor):
         if self.account.is_authenticated:
             start_date = datetime.utcnow().replace(tzinfo=pytz.utc) - timedelta(LOOKBACK)
             # start_date = self._timezone.localize(EWSDateTime.from_datetime(stored_date))
-            self._logger.info("Selecting Folder {0}".format(self.sensor_folder))
+            self._logger.debug("Selecting Folder {0}".format(self.sensor_folder))
             _folder = self.account.mailbox().get_folder(folder_name=self.sensor_folder)
             # _folder = self.account.root.get_folder_by_name(self.sensor_folder)
             _query = _folder.q()
@@ -111,18 +111,11 @@ class ItemSensor(PollingSensor):
             _query = _query.chain('and').on_attribute('isRead').equals(False)
 
             _messages = _folder.get_messages(limit=25, query=_query, download_attachments=False)
-            _cnt = 0
+            # _cnt = 0
             for _message in _messages:
 
                 self._logger.info("Sending trigger for item '{0}'.".format(_message.subject))
                 self._dispatch_trigger_for_new_item(newitem=_message)
-                self._logger.debug("Updating read status on item '{0}'.".format(_message.subject))
-                if _message.mark_as_read():
-                    _cnt += 1
-                else:
-                    self._logger.error(
-                        "Unable to mark message as Read '{0}'.".format(_message.object_id))
-            self._logger.info("Marked {0} items read".format(_cnt))
         else:
             self._logger.warning("Not Authenticated, Check Config and/or generate a token")
 
@@ -186,5 +179,11 @@ class ItemSensor(PollingSensor):
             'body': str(newitem.get_body_text()),
             'datetime_received': datetime_received,
         }
+        self._logger.info("Sender: '{0}'.".format(newitem.sender))
         self._sensor_service.dispatch(trigger=trigger, payload=payload)
-        self._logger.info("Dispatching for'{0}'.".format(newitem.sender))
+        self._logger.debug("Updating read status on item '{0}'.".format(newitem.subject))
+        if newitem.mark_as_read():
+            self._logger.info("Marked item as read")
+        else:
+            self._logger.error(
+                "Unable to mark message as Read: '{0}'.".format(newitem.object_id))
