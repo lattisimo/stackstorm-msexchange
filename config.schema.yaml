@@ -1,50 +1,86 @@
 ---
-  primary_smtp_address:
-    description: "Your primary SMTP address e.g. example@example.com"
-    required: true
-    type: "string"
-  username:
-    description: "Logon username, either NT style DOMAIN\\user or FQDN style user@fulldomain.com"
-    type: "string"
-    required: true
-    secret: true
-  password:
-    description: "Logon password"
-    type: "string"
-    required: true
-    secret: true
-  server:
-    description: "Optional server hostname, for when autodiscover is not available"
-    type: "string"
-    required: false
-  verify_ssl:
-    description: "Verify endpoint SSL details"
-    type: "boolean"
-    default: true
-    required: true
-  timezone:
-    description: "Timezone of user"
-    type: "string"
-    default: "Europe/London"
-    required: true
-  sensor_folder:
-    default: "Inbox"
-    type: string
-    description: "Folder to monitor in the sensor"
-    required: true
-  attachment_directory:
-    default: "/opt/stackstorm/packs/msexchange/attachments"
-    description: "Fully-qualified server directory to save e-mail attachments to."
-    type: string
-    required: true
-  attachment_directory_maximum_size:
-    default: 50
-    type: integer
-    description: >
-      Maximum amount of storage space in MB that attachments can use.
-    required: true
-  attachment_days_to_keep:
-    default: 7
-    type: integer
-    description: "Length of time to keep attachments in days."
-    required: true
+primary_smtp_address:
+  description: "Your primary SMTP address e.g. example@example.com"
+  required: true
+  type: "string"
+username:
+  description: "Logon username, either NT style DOMAIN\\user or FQDN style user@fulldomain.com"
+  type: "string"
+  required: true
+  secret: true
+password:
+  description: "Logon password"
+  type: "string"
+  required: true
+  secret: true
+server:
+  description: "Optional server hostname, for when autodiscover is not available"
+  type: "string"
+  required: false
+verify_ssl:
+  description: "Verify endpoint SSL details"
+  type: "boolean"
+  default: true
+  required: true
+timezone:
+  description: "Timezone of user"
+  type: "string"
+  default: "Europe/London"
+  required: true
+sensor_folder:
+  default: "Inbox"
+  type: string
+  description: "Folder to monitor in the sensor"
+  required: true
+attachment_directory:
+  default: "/opt/stackstorm/packs/msexchange/attachments"
+  description: "Fully-qualified server directory to save e-mail attachments to."
+  type: string
+  required: true
+attachment_directory_maximum_size:
+  default: 50
+  type: integer
+  description: >
+    Maximum amount of storage space in MB that attachments can use.
+  required: true
+attachment_days_to_keep:
+  default: 7
+  type: integer
+  description: "Length of time to keep attachments in days."
+  required: true
+client_id:
+  description: azure application id
+  type: string
+  required: true
+tenant_id:
+  description: azure tenant id
+  type: string
+  required: true
+  secret: true
+client_secret:
+  description: azure client secret
+  type: string
+  secret: true
+  required: true
+scopes:
+  description: Optional server hostname, for when autodiscover is not available
+  type: array
+  required: true
+  default:
+    - https://graph.microsoft.com/User.Read
+    - https://graph.microsoft.com/email
+    - https://graph.microsoft.com/Mail.Send
+    - https://graph.microsoft.com/Mail.ReadWrite
+    - https://graph.microsoft.com/User.Read
+    - https://graph.microsoft.com/Calendars.ReadWrite.Shared
+    - https://graph.microsoft.com/Chat.Create
+    - https://graph.microsoft.com/Chat.ReadWrite
+    - https://graph.microsoft.com/ChatMessage.Read
+    - https://graph.microsoft.com/ChatMessage.Send
+    - https://graph.microsoft.com/Contacts.ReadWrite
+    - https://graph.microsoft.com/Files.ReadWrite.All
+    - https://graph.microsoft.com/MailboxSettings.ReadWrite
+    - https://graph.microsoft.com/Sites.Manage.All
+    - https://graph.microsoft.com/Sites.ReadWrite.All
+    - https://graph.microsoft.com/User.ReadBasic.All
+    - offline_access

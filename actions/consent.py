@@ -1,4 +1,4 @@
-from lib.action import BaseO365Action
+from base.action import BaseO365Action
 import webbrowser
 
 
