@@ -9,6 +9,7 @@ from st2reactor.sensor.base import PollingSensor
 
 LOOKBACK = 100  # number of seconds to look for past emails
 TN = 'O365OAuthToken'  # name of the token file
+TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 
 class ItemSensor(PollingSensor):
@@ -175,14 +176,14 @@ class ItemSensor(PollingSensor):
 
         trigger = 'msexchange.exchange_new_item'
         if isinstance(newitem.received, EWSDateTime):
-            datetime_received = newitem.received.strftime('%Y-%m-%dT%H:%M:%S')
+            datetime_received = newitem.received.strftime(TIME_FORMAT)
         else:
             datetime_received = str(newitem.received)
 
         payload = {
             'item_id': str(newitem.object_id),
             'subject': str(newitem.subject),
-            'body': str(newitem.body),
+            'body': str(newitem.get_body_text()),
             'datetime_received': datetime_received,
         }
         self._sensor_service.dispatch(trigger=trigger, payload=payload)
