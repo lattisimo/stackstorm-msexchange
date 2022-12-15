@@ -10,7 +10,7 @@ class SendEmailAction(BaseO365Action):
             mail = self.account.new_message()
             mail.to.add(to_recipients)
             mail.subject = subject
-            mail.body = codecs.encode(body, "utf-8")
+            mail.body = codecs.decode(body, "utf-8")
             mail.send(save_to_sent_folder=store)
         else:
             self.logger.error("Not Authenticated, Check Config and/or generate a token")
