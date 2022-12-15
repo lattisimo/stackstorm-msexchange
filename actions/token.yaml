@@ -1,10 +1,10 @@
 metadata_file: actions/token.yaml
 name: token
-ref: o365.token
+ref: msexchange.token
 description: retrieve authentication token using consent URL
 enabled: true
 entry_point: token.py
-pack: o365
+pack: msexchange
 runner_type: python-script
 parameters:
   consent_url:
