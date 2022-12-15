@@ -1,11 +1,12 @@
-from collections import namedtuple
 import os
+from collections import namedtuple
 
-from st2common.runners.base_action import Action
+from exchangelib import (DELEGATE, Account, Configuration, EWSDateTime,
+                         EWSTimeZone, ServiceAccount)
+from O365 import Account, FileSystemTokenBackend, MSGraphProtocol
 from st2client.client import Client
 from st2client.models import KeyValuePair
-from exchangelib import (Account, ServiceAccount, Configuration, DELEGATE,
-                         EWSTimeZone, EWSDateTime)
+from st2common.runners.base_action import Action
 
 CacheEntry = namedtuple('CacheEntry', 'ews_url ews_auth_type primary_smtp_address')
 
@@ -139,8 +140,8 @@ class BaseExchangeAction(Action):
             return EWSDateTime.now(tz=self.timezone)
 
         try:
-            from dateutil import parser
             import pytz
+            from dateutil import parser
             parsed_date = parser.parse(date_str)
             utc_date = pytz.utc.localize(parsed_date)
             local_date = utc_date
