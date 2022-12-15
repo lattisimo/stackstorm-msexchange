@@ -5,9 +5,13 @@ from st2common.runners.base_action import Action
 from st2client.client import Client
 from st2client.models import KeyValuePair
 from exchangelib import (Account, ServiceAccount, Configuration, DELEGATE,
-                        EWSTimeZone, EWSDateTime)
+                         EWSTimeZone, EWSDateTime)
 
 CacheEntry = namedtuple('CacheEntry', 'ews_url ews_auth_type primary_smtp_address')
+
+__all__ = ['BaseExchangeAction',
+           'BaseO365Action'
+           ]
 
 
 class BaseExchangeAction(Action):
@@ -63,11 +67,11 @@ class BaseExchangeAction(Action):
         ews_auth_type = self.account.protocol.auth_type
         primary_smtp_address = self.account.primary_smtp_address
         self.client.keys.update(KeyValuePair(name='exchange_ews_url',
-            value=ews_url))
+                                             value=ews_url))
         self.client.keys.update(KeyValuePair(name='exchange_ews_auth_type',
-            value=ews_auth_type))
+                                             value=ews_auth_type))
         self.client.keys.update(KeyValuePair(name='exchange_primary_smtp_address',
-            value=primary_smtp_address))
+                                             value=primary_smtp_address))
 
     def _get_cache(self):
         ews_url = self.client.keys.get_by_name(
@@ -206,3 +210,44 @@ class BaseExchangeAction(Action):
 
         item_iter = self.account.fetch(ids=[(item_id, change_key)])
         return [item for item in item_iter]
+
+
+TN = 'O365OAuthToken'
+
+
+class BaseO365Action(Action):
+    def __init__(self, config=None, action_service=None):
+        super(BaseO365Action, self).__init__(
+            config=config, action_service=action_service)
+        # self.user = self.config["user"]
+        self.tenant_id = self.config['tenant_id']
+        self.scopes = self.config['scopes']
+        self.protocol = MSGraphProtocol()
+        self.credentials = (self.config['client_id'], self.config['client_secret'])
+        self.token_backend = FileSystemTokenBackend(
+            token_path='/etc/st2/tokens', token_filename=TN)
+        # self.token_backend = StackstormTokenBackend(self.user.split("@")[0], self.action_service)
+        self.account = Account(self.credentials, auth_flow_type='authorization', token_backend=self.token_backend,
+                               tenant_id=self.tenant_id, protocol=self.protocol)
+
+    def consent_yo(self):
+        # self.logger.info(f'Expected user: {self.user}')
+        self.logger.info('Follow link to authenticate')
+        # Open url in default browser
+        return self.account.con.get_authorization_url(requested_scopes=self.scopes)
+
+    def token_yo(self, consent_url):
+        if self.account.con.request_token(consent_url, requested_scopes=self.scopes):
+            self.logger.info('Yo Token!')
+        else:
+            self.logger.error('No Token!')
+        # Need to create real method to process user credentials to generate the initial token
+        return
+
+    def refresh_yo(self):
+        self.logger.info('Refreshing Token')
+        if self.account.connection.refresh_token():
+            self.logger.info('Yo Refresh!')
+        else:
+            self.logger.error('No Refresh!')
+        return

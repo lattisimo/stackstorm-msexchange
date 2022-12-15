@@ -4,7 +4,7 @@ pack: msexchange
 runner_type: python-script
 description: Send an email
 enabled: true
-entry_point: send_email.py
+entry_point: send_email_o365.py
 parameters:
     subject:
         type: string

@@ -1,0 +1,13 @@
+metadata_file: actions/token.yaml
+name: token
+ref: o365.token
+description: retrieve authentication token using consent URL
+enabled: true
+entry_point: token.py
+pack: o365
+runner_type: python-script
+parameters:
+  consent_url:
+    required: true
+    description: the authenticated url returned after following the consent
+    type: string

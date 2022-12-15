@@ -1,0 +1,8 @@
+metadata_file: actions/consent.yaml
+name: consent
+ref: o365.consent
+description: Authenticate and retrieve consent URL
+enabled: true
+entry_point: consent.py
+pack: o365
+runner_type: python-script
