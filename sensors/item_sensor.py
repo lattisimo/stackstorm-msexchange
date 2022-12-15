@@ -187,3 +187,4 @@ class ItemSensor(PollingSensor):
             'datetime_received': datetime_received,
         }
         self._sensor_service.dispatch(trigger=trigger, payload=payload)
+        self._logger.info("Dispatching for'{0}'.".format(newitem.sender))
