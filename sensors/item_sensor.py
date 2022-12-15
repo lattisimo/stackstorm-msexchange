@@ -173,7 +173,7 @@ class ItemSensor(PollingSensor):
         # }
         # self._sensor_service.dispatch(trigger=trigger, payload=payload)
 
-        trigger = 'o365.exchange_new_item'
+        trigger = 'msexchange.exchange_new_item'
         if isinstance(newitem.received, EWSDateTime):
             datetime_received = newitem.received.strftime('%Y-%m-%dT%H:%M:%S')
         else:
