@@ -63,7 +63,6 @@ class ItemSensor(PollingSensor):
         #         config=ms_config,
         #         autodiscover=False,
         #         access_type=DELEGATE)
-
         if self.account.con.token_backend.token_path.exists():
             self._logger.info(
                 f"Authenticated Token Found")
@@ -76,6 +75,10 @@ class ItemSensor(PollingSensor):
         else:
             self._logger.warning("Not Authenticated, Check Config and generate a token")
             self._logger.debug(self.account.__dict__)
+        if self.sensor_folder:
+            self._logger.info(f"Monitored Folder: {self.sensor_folder}")
+        else:
+            self._logger.warning("No Folder set for Monitoring")
 
     def poll(self):
         # stored_date = self._get_last_date()
