@@ -70,31 +70,21 @@ class SaveFileAttachmentAction(BaseO365Action):
                 mailbox = self.account.mailbox()
                 message = mailbox.get_message(object_id=message_id, download_attachments=True)
                 folder = mailbox.get_folder(folder_id=message.folder_id)
+                mad = dict([
+                    ("subject", message.subject),
+                    ("attachments", None),
+                    ("received", message.received),
+                    ("folder_name", folder.name),
+                    ("sender_email_address", message.sender),
+                    ("email_recipient_addresses",
+                     message.to._recipients)
+                ])
                 if message.has_attachments:
                     attachment_result_list.append(self._save_attachments(
                         message=message,
                         attachment_format=attachment_format,
                         replace_spaces_in_filename=replace_spaces_in_filename))
-                    mad = dict([
-                        ("subject", message.subject),
-                        ("attachments", message.attachments),
-                        ("received", message.received),
-                        ("folder_name", folder.name),
-                        ("sender_email_address", message.sender),
-                        ("email_recipient_addresses",
-                         message.to._recipients)
-                    ])
-
-                else:
-                    mad = dict([
-                        ("subject", message.subject),
-                        ("attachments", None),
-                        ("received", message.received),
-                        ("folder_name", folder.name),
-                        ("sender_email_address", message.sender),
-                        ("email_recipient_addresses",
-                         message.to._recipients)
-                    ])
+                    mad["attachments"] = message.attachments
                 self.logger.debug("Messages found: \n{m}".format(m=mad))
         else:
             self.logger.error("Not Authenticated")
