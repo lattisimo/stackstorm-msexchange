@@ -230,6 +230,7 @@ class BaseO365Action(Action):
         # self.token_backend = StackstormTokenBackend(self.user.split("@")[0], self.action_service)
         self.account = Account(self.credentials, auth_flow_type='authorization', token_backend=self.token_backend,
                                tenant_id=self.tenant_id, protocol=self.protocol)
+        self._attachment_configuration()
 
     def consent_yo(self):
         # self.logger.info(f'Expected user: {self.user}')
