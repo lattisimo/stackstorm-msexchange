@@ -131,14 +131,15 @@ class SaveFileAttachmentAction(BaseO365Action):
                         self.logger.debug(f"File is image, skipping: {attachment.name}")
                         continue
                     else:
-                        output_file = self._get_unique_filename(
+                        output_file, directory, name = self._get_unique_filename(
                             attachment_name=attachment.name,
-                            attachment_sent=message.received,
+                            attachment_sent=message.sent,
                             replace_spaces_in_filename=replace_spaces_in_filename)
                         self.logger.debug("File attachment: {f}".format(f=output_file))
-                    with open(os.path.abspath(output_file), output_format) \
-                            as f:
-                        f.write(attachment.content)
+                    attachment.save(location=directory, custom_name=name)
+                    # with open(os.path.abspath(output_file), output_format) \
+                    #         as f:
+                    #     f.write(attachment.content)
                     self.logger.info("Saved attachment '{att_name}'."
                                      .format(att_name=output_file))
                     att_filename_list.append(output_file)
@@ -169,45 +170,45 @@ class SaveFileAttachmentAction(BaseO365Action):
             attachment_name = (
                 str(attachment_name).replace(" ", replace_spaces_in_filename))
         # Try combination of path and attachment filename
-        output_filename = os.path.join(save_dir, attachment_name)
-        if not os.path.exists(output_filename):
-            return output_filename
+        full_path, file_directory, file_name = os.path.join(save_dir, attachment_name)
+        if not os.path.exists(full_path):
+            return full_path, file_directory, file_name
 
         base_file_name = os.path.splitext(attachment_name)
         # Try appending *attachment* date in format MM_DD_YYYY
         file_date = str(attachment_sent.strftime("%m_%d_%Y"))
-        output_filename = self._construct_filename(
+        full_path, file_directory, file_name = self._construct_filename(
             base_file_name=base_file_name, append_str=file_date
         )
-        if not os.path.exists(output_filename):
-            return output_filename
+        if not os.path.exists(full_path):
+            return full_path, file_directory, file_name
 
         # Try appending *attachment* date in format MM_DD_YYYY_HH_MI_SS
         file_date = str(attachment_sent.strftime("%m_%d_%Y_%H_%M_%S"))
-        output_filename = self._construct_filename(
+        full_path, file_directory, file_name = self._construct_filename(
             base_file_name=base_file_name, append_str=file_date
         )
-        if not os.path.exists(output_filename):
-            return output_filename
+        if not os.path.exists(full_path):
+            return full_path, file_directory, file_name
 
         # Try appending *current* date in format MM_DD_YYYY_HH_MI_SS
         file_date = str(datetime.datetime.now(datetime.timezone.utc)
                         .strftime("%m_%d_%Y_%H_%M_%S"))
-        output_filename = self._construct_filename(
+        full_path, file_directory, file_name = self._construct_filename(
             base_file_name=base_file_name, append_str=file_date
         )
-        if not os.path.exists(output_filename):
-            return output_filename
+        if not os.path.exists(full_path):
+            return full_path, file_directory, file_name
 
         # Try appending random 8-character string
-        while os.path.exists(output_filename):
+        while os.path.exists(full_path):
             rnd_str = "".join(random.SystemRandom().choice(
                 string.ascii_letters + string.digits) for _ in range(8))
-            output_filename = self._construct_filename(
+            full_path, file_directory, file_name = self._construct_filename(
                 base_file_name=base_file_name, append_str=rnd_str
             )
-            if not os.path.exists(output_filename):
-                return output_filename
+            if not os.path.exists(full_path):
+                return full_path, file_directory, file_name
 
     def _construct_filename(self, base_file_name, append_str, save_dir=None):
         if not save_dir:
@@ -215,6 +216,6 @@ class SaveFileAttachmentAction(BaseO365Action):
         file_name = "{name}_{append_str}{ext}".format(
             name=base_file_name[0], append_str=append_str,
             ext=base_file_name[1])
-        output_filename = os.path.join(save_dir, file_name)
+        full_path = os.path.join(save_dir, file_name)
 
-        return output_filename
+        return full_path, save_dir, file_name
