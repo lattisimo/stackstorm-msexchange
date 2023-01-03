@@ -72,7 +72,7 @@ class SaveFileAttachmentAction(BaseO365Action):
                 folder = mailbox.get_folder(folder_id=message.folder_id)
                 if message.has_attachments:
                     attachment_result_list.append(self._save_attachments(
-                        messages=messages,
+                        message=message,
                         attachment_format=attachment_format,
                         replace_spaces_in_filename=replace_spaces_in_filename))
                     mad = dict([
