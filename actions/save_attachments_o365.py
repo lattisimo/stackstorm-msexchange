@@ -156,7 +156,7 @@ class SaveFileAttachmentAction(BaseO365Action):
                     ("email_subject", str(message.subject)),
                     ("email_sent", str(message.received)),
                     ("sender_email_address",
-                        str(message.sender.email_address)),
+                        str(message.sender.address)),
                     ("attachment_files", att_filename_list)
                 ]))
 
