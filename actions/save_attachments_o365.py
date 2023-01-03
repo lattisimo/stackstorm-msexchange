@@ -218,4 +218,4 @@ class SaveFileAttachmentAction(BaseO365Action):
             ext=base_file_name[1])
         full_path = os.path.join(save_dir, file_name)
 
-        return full_path, save_dir, file_name
+        return (full_path, save_dir, file_name)
