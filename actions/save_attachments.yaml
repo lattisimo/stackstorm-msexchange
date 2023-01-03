@@ -6,7 +6,7 @@ description: >
   Save file attachments from e-mail. Returns a list/array of fully-qualified
   filenames (path and filename) of saved attachments.
 enabled: true
-entry_point: save_attachments)o365.py
+entry_point: save_attachments_o365.py
 parameters:
   folder:
     type: string
