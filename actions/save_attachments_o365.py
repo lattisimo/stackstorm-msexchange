@@ -79,7 +79,6 @@ class SaveFileAttachmentAction(BaseO365Action):
         email messages.
         """
 
-        # output_format = ATTACHMENT_FORMAT[attachment_format]
         replace_spaces_in_filename = REPLACE_SPACE.get(
             replace_spaces_in_filename, None)
         att_result_list = list()
@@ -106,12 +105,10 @@ class SaveFileAttachmentAction(BaseO365Action):
                             attachment_name=attachment.name,
                             attachment_sent=message.sent,
                             replace_spaces_in_filename=replace_spaces_in_filename)
-                        self.logger.debug("File attachment: {f}".format(f=output_file))
+                        self.logger.debug("File attachment: {f}"
+                                          .format(f=attachment.name))
                     attachment.save(location=directory, custom_name=name)
-                    # with open(os.path.abspath(output_file), output_format) \
-                    #         as f:
-                    #     f.write(attachment.content)
-                    self.logger.info("Saved attachment '{att_name}'."
+                    self.logger.info("Saved attachment '{att_name}'"
                                      .format(att_name=output_file))
                     att_filename_list.append(output_file)
                 else:
@@ -191,4 +188,4 @@ class SaveFileAttachmentAction(BaseO365Action):
             ext=base_file_name[1])
         full_path = os.path.join(save_dir, file_name)
 
-        return (full_path, save_dir, file_name)
+        return full_path, save_dir, file_name
