@@ -127,7 +127,7 @@ class SaveFileAttachmentAction(BaseO365Action):
             if isinstance(attachment, MessageAttachment):
 
                 if attachment.attachment_type == 'file':
-                    if attachment.name.rsplit(".", 1)[-1].lower in OMITED_EXTENSIONS:
+                    if attachment.name.rsplit(".", 1)[-1].lower() in OMITED_EXTENSIONS:
                         self.logger.debug(f"File is image, skipping: {attachment.name}")
                         continue
                     else:
