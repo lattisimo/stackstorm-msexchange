@@ -8,10 +8,6 @@ from O365 import Message
 from O365.message import MessageAttachment
 
 # Dictionary lookup for output format to write attachment from action parameter
-ATTACHMENT_FORMAT = dict([
-    ("BINARY", "wb"),
-    ("TEXT", "wt")
-])
 REPLACE_SPACE = dict([
     ("NONE", None),
     ("UNDERSCORE", "_"),
@@ -33,25 +29,12 @@ class SaveFileAttachmentAction(BaseO365Action):
     Action to save *file* attachments from MS Exchange *email* messages.
     """
 
-    def run(self, folder="Inbox", subject=None, search_start_date=None,
-            message_id=None, change_key=None,
-            attachment_format="BINARY", replace_spaces_in_filename=None):
+    def run(self, message_id=None, replace_spaces_in_filename=None):
         """
-        TODO: impliment search and remove unneeded change_key
         Action entrypoint
-        :param folder str: MS Exchange folder to search for messages.
-        :param subject str: [Optional] Partial, case-sensitive string to
-            search for in "Subject" field.
-        :param search_start_date str: [Optional] Date, preferably in ISO 8601
-            format, as start date for search.
         :param message_id str: [Optional] The Exchange server message ID
             for the *email* message to save attachments. (Must be used in
             conjunction with change_key.)
-        :param change_key str: [Optional] The Exchange server change key
-            for the *email* message to save attachments. (Must be used in
-            conjunction with message_id.)
-        :param attachment_format str: Format to save attachments in.
-            BINARY or TEXT
         :param replace_spaces_in_filename str: Character to replace spaces in
             file names, if desired. Default is to leave spaces.
 
@@ -61,7 +44,6 @@ class SaveFileAttachmentAction(BaseO365Action):
             Sender email address
             List of fully-qualified file/path names of saved attachments
         """
-        messages = list()
         attachment_result_list = list()
         if self.account.is_authenticated:
             self.logger.debug(self.account.get_current_user())
@@ -80,25 +62,24 @@ class SaveFileAttachmentAction(BaseO365Action):
                      message.to._recipients)
                 ])
                 if message.has_attachments:
-                    attachment_result_list.append(self._save_attachments(
-                        message=message,
-                        attachment_format=attachment_format,
-                        replace_spaces_in_filename=replace_spaces_in_filename))
                     mad["attachments"] = message.attachments
+                    attachment_result_list = self._save_attachments(
+                        message=message,
+                        replace_spaces_in_filename=replace_spaces_in_filename)
                 self.logger.debug("Messages found: \n{m}".format(m=mad))
         else:
             self.logger.error("Not Authenticated")
 
         return attachment_result_list
 
-    def _save_attachments(self, message, attachment_format,
+    def _save_attachments(self, message,
                           replace_spaces_in_filename):
         """
         Save attachments to specified server folder from provided list of
         email messages.
         """
 
-        output_format = ATTACHMENT_FORMAT[attachment_format]
+        # output_format = ATTACHMENT_FORMAT[attachment_format]
         replace_spaces_in_filename = REPLACE_SPACE.get(
             replace_spaces_in_filename, None)
         att_result_list = list()
@@ -144,7 +125,7 @@ class SaveFileAttachmentAction(BaseO365Action):
             if att_filename_list:
                 att_result_list.append(dict([
                     ("email_subject", str(message.subject)),
-                    ("email_sent", str(message.received)),
+                    ("email_sent", str(message.sent)),
                     ("sender_email_address",
                         str(message.sender.address)),
                     ("attachment_files", att_filename_list)
