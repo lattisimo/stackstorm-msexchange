@@ -78,7 +78,7 @@ class SaveFileAttachmentAction(BaseO365Action):
                     mad = dict([
                         ("subject", message.subject),
                         ("attachments", message.attachments),
-                        ("datetime_sent", message.received),
+                        ("received", message.received),
                         ("folder_name", folder.name),
                         ("sender_email_address", message.sender),
                         ("email_recipient_addresses",
@@ -89,7 +89,7 @@ class SaveFileAttachmentAction(BaseO365Action):
                     mad = dict([
                         ("subject", message.subject),
                         ("attachments", None),
-                        ("datetime_sent", message.received),
+                        ("received", message.received),
                         ("folder_name", folder.name),
                         ("sender_email_address", message.sender),
                         ("email_recipient_addresses",
@@ -133,7 +133,7 @@ class SaveFileAttachmentAction(BaseO365Action):
                     else:
                         output_file = self._get_unique_filename(
                             attachment_name=attachment.name,
-                            attachment_sent=message.datetime_sent,
+                            attachment_sent=message.received,
                             replace_spaces_in_filename=replace_spaces_in_filename)
                         self.logger.debug("File attachment: {f}".format(f=output_file))
                     with open(os.path.abspath(output_file), output_format) \
@@ -153,7 +153,7 @@ class SaveFileAttachmentAction(BaseO365Action):
             if att_filename_list:
                 att_result_list.append(dict([
                     ("email_subject", str(message.subject)),
-                    ("email_sent", str(message.datetime_sent)),
+                    ("email_sent", str(message.received)),
                     ("sender_email_address",
                         str(message.sender.email_address)),
                     ("attachment_files", att_filename_list)
