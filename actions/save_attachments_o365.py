@@ -171,6 +171,8 @@ class SaveFileAttachmentAction(BaseO365Action):
                 str(attachment_name).replace(" ", replace_spaces_in_filename))
         # Try combination of path and attachment filename
         full_path = os.path.join(save_dir, attachment_name)
+        file_directory = save_dir
+        file_name = attachment_name
         if not os.path.exists(full_path):
             return full_path, file_directory, file_name
 
