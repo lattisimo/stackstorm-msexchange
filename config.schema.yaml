@@ -84,3 +84,8 @@ scopes:
     - https://graph.microsoft.com/Sites.ReadWrite.All
     - https://graph.microsoft.com/User.ReadBasic.All
     - offline_access
+token_path:
+  description: "Path to store token"
+  type: string
+  default: "/etc/st2/tokens"
+  required: true

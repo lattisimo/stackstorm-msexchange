@@ -1,32 +1,36 @@
 import os
 from collections import namedtuple
 
-from exchangelib import (DELEGATE, Account, Configuration, EWSDateTime,
-                         EWSTimeZone, ServiceAccount)
+from exchangelib import (
+    DELEGATE,
+    Account,
+    Configuration,
+    EWSDateTime,
+    EWSTimeZone,
+    ServiceAccount,
+)
 from O365 import Account, FileSystemTokenBackend, MSGraphProtocol
 from st2client.client import Client
 from st2client.models import KeyValuePair
 from st2common.runners.base_action import Action
 
-CacheEntry = namedtuple('CacheEntry', 'ews_url ews_auth_type primary_smtp_address')
+CacheEntry = namedtuple("CacheEntry", "ews_url ews_auth_type primary_smtp_address")
 
-__all__ = ['BaseExchangeAction',
-           'BaseO365Action'
-           ]
+__all__ = ["BaseExchangeAction", "BaseO365Action"]
 
 
 class BaseExchangeAction(Action):
     def __init__(self, config):
         super(BaseExchangeAction, self).__init__(config)
-        api_url = os.environ.get('ST2_ACTION_API_URL', None)
-        token = os.environ.get('ST2_ACTION_AUTH_TOKEN', None)
+        api_url = os.environ.get("ST2_ACTION_API_URL", None)
+        token = os.environ.get("ST2_ACTION_AUTH_TOKEN", None)
         self.client = Client(api_url=api_url, token=token)
         self._credentials = ServiceAccount(
-            username=config['username'],
-            password=config['password'])
-        self.timezone = EWSTimeZone.timezone(config['timezone'])
+            username=config["username"], password=config["password"]
+        )
+        self.timezone = EWSTimeZone.timezone(config["timezone"])
         try:
-            server = config['server']
+            server = config["server"]
             autodiscover = False if server is not None else True
         except KeyError:
             autodiscover = True
@@ -35,29 +39,30 @@ class BaseExchangeAction(Action):
             config = Configuration(
                 service_endpoint=cache.ews_url,
                 credentials=self._credentials,
-                auth_type=cache.ews_auth_type)
+                auth_type=cache.ews_auth_type,
+            )
             self.account = Account(
                 primary_smtp_address=cache.primary_smtp_address,
                 config=config,
                 autodiscover=False,
-                access_type=DELEGATE
+                access_type=DELEGATE,
             )
         else:
             if autodiscover:
                 self.account = Account(
-                    primary_smtp_address=config['primary_smtp_address'],
+                    primary_smtp_address=config["primary_smtp_address"],
                     credentials=self._credentials,
                     autodiscover=autodiscover,
-                    access_type=DELEGATE)
+                    access_type=DELEGATE,
+                )
             else:
-                ms_config = Configuration(
-                    server=server,
-                    credentials=self._credentials)
+                ms_config = Configuration(server=server, credentials=self._credentials)
                 self.account = Account(
-                    primary_smtp_address=config['primary_smtp_address'],
+                    primary_smtp_address=config["primary_smtp_address"],
                     config=ms_config,
                     autodiscover=False,
-                    access_type=DELEGATE)
+                    access_type=DELEGATE,
+                )
             self._store_cache_configuration()
 
         # Configure attachment parameters
@@ -67,25 +72,28 @@ class BaseExchangeAction(Action):
         ews_url = self.account.protocol.service_endpoint
         ews_auth_type = self.account.protocol.auth_type
         primary_smtp_address = self.account.primary_smtp_address
-        self.client.keys.update(KeyValuePair(name='exchange_ews_url',
-                                             value=ews_url))
-        self.client.keys.update(KeyValuePair(name='exchange_ews_auth_type',
-                                             value=ews_auth_type))
-        self.client.keys.update(KeyValuePair(name='exchange_primary_smtp_address',
-                                             value=primary_smtp_address))
+        self.client.keys.update(KeyValuePair(name="exchange_ews_url", value=ews_url))
+        self.client.keys.update(
+            KeyValuePair(name="exchange_ews_auth_type", value=ews_auth_type)
+        )
+        self.client.keys.update(
+            KeyValuePair(
+                name="exchange_primary_smtp_address", value=primary_smtp_address
+            )
+        )
 
     def _get_cache(self):
-        ews_url = self.client.keys.get_by_name(
-            name='exchange_ews_url')
-        ews_auth_type = self.client.keys.get_by_name(
-            name='exchange_ews_auth_type')
+        ews_url = self.client.keys.get_by_name(name="exchange_ews_url")
+        ews_auth_type = self.client.keys.get_by_name(name="exchange_ews_auth_type")
         primary_smtp_address = self.client.keys.get_by_name(
-            name='exchange_primary_smtp_address')
+            name="exchange_primary_smtp_address"
+        )
         if ews_url:
             return CacheEntry(
                 ews_url=ews_url.value,
                 ews_auth_type=ews_auth_type.value,
-                primary_smtp_address=primary_smtp_address.value)
+                primary_smtp_address=primary_smtp_address.value,
+            )
         else:
             return None
 
@@ -94,15 +102,18 @@ class BaseExchangeAction(Action):
         if not attach_dir:
             try:
                 from st2common.content import utils as content_utils
-                pack_name = getattr(self.action_service._action_wrapper,
-                                    "_pack", "unknown")
+
+                pack_name = getattr(
+                    self.action_service._action_wrapper, "_pack", "unknown"
+                )
                 pack_path = content_utils.get_pack_base_path(pack_name)
                 attach_dir = os.path.join(pack_path, "attachments")
             except ImportError:
                 err_msg = (
                     "Unable load import 'st2common.content.utils' "
                     "library. Using pack default attachment directory of "
-                    "'/opt/stackstorm/packs/msexchange/attachments'.")
+                    "'/opt/stackstorm/packs/msexchange/attachments'."
+                )
                 self.logger.error(err_msg)
                 attach_dir = "/opt/stackstorm/packs/msexchange/attachments"
         else:
@@ -113,18 +124,24 @@ class BaseExchangeAction(Action):
         if not os.path.exists(attach_dir):
             os.makedirs(attach_dir, exist_ok=True)
             os.chmod(attach_dir, 0o755)
-            self.logger.info("Created directory '{dir}' and made writeable."
-                             .format(dir=attach_dir))
+            self.logger.info(
+                "Created directory '{dir}' and made writeable.".format(dir=attach_dir)
+            )
 
         if not os.access(attach_dir, os.W_OK):
-            raise OSError("Unable to write to attachment directory '{dir}'."
-                          .format(dir=attach_dir))
+            raise OSError(
+                "Unable to write to attachment directory '{dir}'.".format(
+                    dir=attach_dir
+                )
+            )
 
         self.attachment_directory = attach_dir
-        self.attachment_directory_maximum_size = int(self.config.get(
-            "attachment_directory_maximum_size", 50))
-        self.attachment_days_to_keep = int(self.config.get(
-            "attachment_days_to_keep", 7))
+        self.attachment_directory_maximum_size = int(
+            self.config.get("attachment_directory_maximum_size", 50)
+        )
+        self.attachment_days_to_keep = int(
+            self.config.get("attachment_days_to_keep", 7)
+        )
 
     def _get_date_from_string(self, date_str=None):
         """
@@ -142,22 +159,23 @@ class BaseExchangeAction(Action):
         try:
             import pytz
             from dateutil import parser
+
             parsed_date = parser.parse(date_str)
             utc_date = pytz.utc.localize(parsed_date)
             local_date = utc_date
             try:
                 local_date = utc_date.astimezone(self.timezone)
             except Exception:
-                self.logger.error("Unable to convert search date to pack "
-                                  "timezone. Using UTC...")
+                self.logger.error(
+                    "Unable to convert search date to pack " "timezone. Using UTC..."
+                )
             start_date = EWSDateTime.from_datetime(local_date)
             self.logger.debug("Search start date: {dt}".format(dt=start_date))
         except ImportError:
             self.logger.error("Unable to find/load 'dateutil' library.")
             start_date = None
         except ValueError:
-            self.logger.error("Invalid format for date input: {dt}"
-                              .format(dt=date_str))
+            self.logger.error("Invalid format for date input: {dt}".format(dt=date_str))
             start_date = None
 
         return start_date
@@ -184,24 +202,27 @@ class BaseExchangeAction(Action):
                 try:
                     items = folder.filter(
                         subject__contains=subject,
-                        datetime_received__range=(start_date, end_date))
+                        datetime_received__range=(start_date, end_date),
+                    )
                 # Search on other items, which have regular "start" attribute.
                 except Exception:
                     items = folder.filter(
-                        subject__contains=subject, start__gte=start_date)
+                        subject__contains=subject, start__gte=start_date
+                    )
             else:
                 items = folder.filter(subject__contains=subject)
         else:
             if start_date:
                 try:
                     items = folder.filter(
-                        datetime_received__range=(start_date, end_date))
+                        datetime_received__range=(start_date, end_date)
+                    )
                 except Exception:
                     items = folder.filter(start__gte=start_date)
             else:
                 items = folder.all()
 
-        return (items)
+        return items
 
     def _get_item_by_id(self, item_id, change_key):
         """
@@ -213,45 +234,53 @@ class BaseExchangeAction(Action):
         return [item for item in item_iter]
 
 
-TN = 'O365OAuthToken'
+TN = "O365OAuthToken"
 
 
 class BaseO365Action(Action):
     def __init__(self, config=None, action_service=None):
         super(BaseO365Action, self).__init__(
-            config=config, action_service=action_service)
+            config=config, action_service=action_service
+        )
         # self.user = self.config["user"]
-        self.tenant_id = self.config['tenant_id']
-        self.scopes = self.config['scopes']
+        self.tenant_id = self.config["tenant_id"]
+        self.scopes = self.config["scopes"]
         self.protocol = MSGraphProtocol()
-        self.credentials = (self.config['client_id'], self.config['client_secret'])
+        self.credentials = (self.config["client_id"], self.config["client_secret"])
+        self.token_path = self.config.get("token_path", "/etc/st2/tokens")
         self.token_backend = FileSystemTokenBackend(
-            token_path='/etc/st2/tokens', token_filename=TN)
+            token_path=self.token_path, token_filename=TN
+        )
         # self.token_backend = StackstormTokenBackend(self.user.split("@")[0], self.action_service)
-        self.account = Account(self.credentials, auth_flow_type='authorization', token_backend=self.token_backend,
-                               tenant_id=self.tenant_id, protocol=self.protocol)
+        self.account = Account(
+            self.credentials,
+            auth_flow_type="authorization",
+            token_backend=self.token_backend,
+            tenant_id=self.tenant_id,
+            protocol=self.protocol,
+        )
         self._attachment_configuration()
 
     def consent_yo(self):
         # self.logger.info(f'Expected user: {self.user}')
-        self.logger.info('Follow link to authenticate')
+        self.logger.info("Follow link to authenticate")
         # Open url in default browser
         return self.account.con.get_authorization_url(requested_scopes=self.scopes)
 
     def token_yo(self, consent_url):
         if self.account.con.request_token(consent_url, requested_scopes=self.scopes):
-            self.logger.info('Yo Token!')
+            self.logger.info("Yo Token!")
         else:
-            self.logger.error('No Token!')
+            self.logger.error("No Token!")
         # Need to create real method to process user credentials to generate the initial token
         return
 
     def refresh_yo(self):
-        self.logger.info('Refreshing Token')
+        self.logger.info("Refreshing Token")
         if self.account.connection.refresh_token():
-            self.logger.info('Yo Refresh!')
+            self.logger.info("Yo Refresh!")
         else:
-            self.logger.error('No Refresh!')
+            self.logger.error("No Refresh!")
         return
 
     def _attachment_configuration(self):
@@ -259,15 +288,18 @@ class BaseO365Action(Action):
         if not attach_dir:
             try:
                 from st2common.content import utils as content_utils
-                pack_name = getattr(self.action_service._action_wrapper,
-                                    "_pack", "unknown")
+
+                pack_name = getattr(
+                    self.action_service._action_wrapper, "_pack", "unknown"
+                )
                 pack_path = content_utils.get_pack_base_path(pack_name)
                 attach_dir = os.path.join(pack_path, "attachments")
             except ImportError:
                 err_msg = (
                     "Unable load import 'st2common.content.utils' "
                     "library. Using pack default attachment directory of "
-                    "'/opt/stackstorm/packs/msexchange/attachments'.")
+                    "'/opt/stackstorm/packs/msexchange/attachments'."
+                )
                 self.logger.error(err_msg)
                 attach_dir = "/opt/stackstorm/packs/msexchange/attachments"
         else:
@@ -278,15 +310,21 @@ class BaseO365Action(Action):
         if not os.path.exists(attach_dir):
             os.makedirs(attach_dir, exist_ok=True)
             os.chmod(attach_dir, 0o755)
-            self.logger.info("Created directory '{dir}' and made writeable."
-                             .format(dir=attach_dir))
+            self.logger.info(
+                "Created directory '{dir}' and made writeable.".format(dir=attach_dir)
+            )
 
         if not os.access(attach_dir, os.W_OK):
-            raise OSError("Unable to write to attachment directory '{dir}'."
-                          .format(dir=attach_dir))
+            raise OSError(
+                "Unable to write to attachment directory '{dir}'.".format(
+                    dir=attach_dir
+                )
+            )
 
         self.attachment_directory = attach_dir
-        self.attachment_directory_maximum_size = int(self.config.get(
-            "attachment_directory_maximum_size", 50))
-        self.attachment_days_to_keep = int(self.config.get(
-            "attachment_days_to_keep", 7))
+        self.attachment_directory_maximum_size = int(
+            self.config.get("attachment_directory_maximum_size", 50)
+        )
+        self.attachment_days_to_keep = int(
+            self.config.get("attachment_days_to_keep", 7)
+        )
