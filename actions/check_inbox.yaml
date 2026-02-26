@@ -1,0 +1,18 @@
+---
+name: check_inbox
+pack: msexchange
+runner_type: python-script
+description: Check inbox and return recent messages
+enabled: true
+entry_point: check_inbox_o365.py
+parameters:
+    limit:
+        type: integer
+        description: Maximum number of messages to return
+        default: 10
+        required: false
+    unread_only:
+        type: boolean
+        description: Return only unread messages
+        default: false
+        required: false
